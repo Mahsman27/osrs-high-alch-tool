@@ -1,0 +1,25 @@
+{
+  "name": "high-alch-tool",
+  "version": "1.0.0",
+  "description": "OSRS High Alchemy profit finder - Terminal tool to find the most profitable items to alch",
+  "main": "index.ts",
+  "scripts": {
+    "start": "npx ts-node index.ts",
+    "build": "tsc index.ts",
+    "run:js": "node index.js"
+  },
+  "keywords": [
+    "osrs",
+    "runescape",
+    "high-alchemy",
+    "grand-exchange",
+    "profit",
+    "money-making"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  }
+}
