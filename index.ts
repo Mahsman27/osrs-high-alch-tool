@@ -105,8 +105,8 @@ async function fetchLatestPrices(): Promise<Record<string, PriceData>> {
 function calculateProfits(
   items: ItemMapping[],
   prices: Record<string, PriceData>
-): AlchemyItem[] {
-  const NATURE_RUNE_PRICE = prices["561"]?.high || 100; // Item ID 561 is Nature rune
+): { items: AlchemyItem[]; natureRunePrice: number } {
+  const natureRunePrice = prices["561"]?.high || 100; // Item ID 561 is Nature rune
   
   const profitableItems: AlchemyItem[] = [];
 
@@ -128,7 +128,7 @@ function calculateProfits(
     if (!buyPrice) continue;
 
     // Calculate profit: High Alch Value - GE Buy Price - Nature Rune Cost
-    const profit = item.highalch - buyPrice - NATURE_RUNE_PRICE;
+    const profit = item.highalch - buyPrice - natureRunePrice;
 
     // Only include profitable items
     if (profit > 0) {
@@ -152,11 +152,14 @@ function calculateProfits(
   }
 
   // Sort by profit (highest first)
-  return profitableItems.sort((a, b) => b.profit - a.profit);
+  return { 
+    items: profitableItems.sort((a, b) => b.profit - a.profit),
+    natureRunePrice 
+  };
 }
 
 // Display results in a formatted table
-function displayResults(items: AlchemyItem[]): void {
+function displayResults(items: AlchemyItem[], natureRunePrice: number): void {
   console.log("\n" + "=".repeat(100));
   console.log("                    OSRS HIGH ALCHEMY PROFIT TRACKER");
   console.log("=".repeat(100));
@@ -186,7 +189,7 @@ function displayResults(items: AlchemyItem[]): void {
   console.log(`- Total profitable items: ${items.length}`);
   console.log(`- Top item: ${topItems[0]?.name || "N/A"} (${formatPrice(topItems[0]?.profit || 0)} profit each)`);
   console.log(`- Best batch: ${topItems[0]?.name || "N/A"} (${topItems[0]?.batchProfit ? formatPrice(topItems[0].batchProfit) + ' per 4h cycle' : 'N/A - no buy limit data'})`);
-  console.log(`- Nature rune cost: ${formatPrice(100)} gp (estimated)`);
+  console.log(`- Nature rune cost: ${formatPrice(natureRunePrice)} gp`);
   console.log("\nPrice Freshness Legend:");
   console.log("  ✅ Fresh - Price updated within last 10 minutes");
   console.log("  ⚠️ Stale - Price updated 10-30 minutes ago");
@@ -210,7 +213,7 @@ async function main(): Promise<void> {
     console.log(`✅ Loaded ${items.length} items and ${Object.keys(prices).length} price entries`);
     console.log("🧮 Calculating High Alchemy profits...");
 
-    const profitableItems = calculateProfits(items, prices);
+    const { items: profitableItems, natureRunePrice } = calculateProfits(items, prices);
 
     if (profitableItems.length === 0) {
       console.log("\n❌ No profitable High Alchemy items found at current prices.");
@@ -218,7 +221,7 @@ async function main(): Promise<void> {
       return;
     }
 
-    displayResults(profitableItems);
+    displayResults(profitableItems, natureRunePrice);
 
     const duration = ((Date.now() - startTime) / 1000).toFixed(2);
     console.log(`⏱️  Completed in ${duration} seconds\n`);
