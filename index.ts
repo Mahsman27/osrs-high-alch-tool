@@ -114,6 +114,9 @@ function calculateProfits(
     // Skip items without high alch value
     if (!item.highalch || item.highalch <= 0) continue;
 
+    // Skip degraded/untradeable Barrows items (ending with " 0")
+    if (item.name.endsWith(" 0")) continue;
+
     const priceData = prices[item.id.toString()];
     if (!priceData) continue;
 
@@ -129,10 +132,9 @@ function calculateProfits(
 
     // Only include profitable items
     if (profit > 0) {
-      // Calculate batch profit: profit per item × buy limit (respecting GE 4-hour limit)
-      // If no buy limit, estimate 1000 for calculation purposes
-      const effectiveLimit = item.limit || 1000;
-      const batchProfit = profit * effectiveLimit;
+      // Calculate batch profit only if there's a known buy limit
+      // Common GE default is 70, but we show N/A when limit is unknown
+      const batchProfit = item.limit ? profit * item.limit : 0;
 
       profitableItems.push({
         id: item.id,
@@ -171,7 +173,7 @@ function displayResults(items: AlchemyItem[]): void {
     "Buy Price": formatPrice(item.buyPrice),
     "High Alch": formatPrice(item.highAlchValue),
     "Profit": formatPrice(item.profit),
-    "Buy Limit": item.buyLimit ? formatNumber(item.buyLimit) : "∞",
+    "Buy Limit": item.buyLimit ? formatNumber(item.buyLimit) : "N/A",
     "Batch Profit": formatPrice(item.batchProfit),
     "Price Freshness": `${getFreshnessIndicator(item.priceTimestamp)} (${formatTimeAgo(item.priceTimestamp)})`,
   }));
@@ -183,7 +185,7 @@ function displayResults(items: AlchemyItem[]): void {
   console.log("SUMMARY:");
   console.log(`- Total profitable items: ${items.length}`);
   console.log(`- Top item: ${topItems[0]?.name || "N/A"} (${formatPrice(topItems[0]?.profit || 0)} profit each)`);
-  console.log(`- Best batch: ${topItems[0]?.name || "N/A"} (${formatPrice(topItems[0]?.batchProfit || 0)} per 4h cycle)`);
+  console.log(`- Best batch: ${topItems[0]?.name || "N/A"} (${topItems[0]?.batchProfit ? formatPrice(topItems[0].batchProfit) + ' per 4h cycle' : 'N/A - no buy limit data'})`);
   console.log(`- Nature rune cost: ${formatPrice(100)} gp (estimated)`);
   console.log("\nPrice Freshness Legend:");
   console.log("  ✅ Fresh - Price updated within last 10 minutes");
