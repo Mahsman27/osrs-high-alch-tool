@@ -120,6 +120,12 @@ function calculateProfits(
     const priceData = prices[item.id.toString()];
     if (!priceData) continue;
 
+    // Skip items with stale price data (older than 24 hours)
+    const now = Math.floor(Date.now() / 1000);
+    const priceAge = priceData.highTime ? now - priceData.highTime : Infinity;
+    if (priceAge > 86400) continue; // 24 hours = 86400 seconds
+    if (!priceData) continue;
+
     // Use high price (what buyers offer) for cost calculation
     // This is what you'd pay when placing a buy offer and waiting
     const buyPrice = priceData.high;
