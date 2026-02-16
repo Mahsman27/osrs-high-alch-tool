@@ -133,6 +133,9 @@ function calculateProfits(
     
     if (!buyPrice) continue;
 
+    // Skip items with suspiciously low prices (likely bad data)
+    if (buyPrice < 50) continue;
+
     // Calculate profit: High Alch Value - GE Buy Price - Nature Rune Cost
     const profit = item.highalch - buyPrice - natureRunePrice;
 
